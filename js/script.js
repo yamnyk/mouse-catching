@@ -62,13 +62,14 @@ class MouseGame {
             if (this.time.textContent === '0') {
                 this.endCountDown(handler);
             } else {
-                this.time.textContent = parseInt(this.time.textContent || this.lvl * 10) - 1;
+                this.time.textContent = (parseInt(this.time.textContent) || this.lvl * 10) - 1;
             }
         }, 1000)
     }
 
     endCountDown(handler) {
         this.gameContainer.removeEventListener('mousemove', handler);
+        this.time.textContent = '';
         clearInterval(this.countDown);
     }
 
