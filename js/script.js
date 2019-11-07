@@ -10,6 +10,9 @@ class MouseGame {
         this.score = document.createElement('span');
         this.time = document.createElement('span');
         this.startBtn = document.createElement('button');
+
+        this.time.textContent = 0;
+        this.score.textContent = 0;
         this.startBtn.textContent = 'Start';
     }
 
@@ -17,7 +20,11 @@ class MouseGame {
         this.renderGameField();
 
         const mouseMove = (e) => {
-            this.mouseMoveHandler(e);
+            // if (this.isGameOver()) {
+            //     this.endCountDown(mouseMove);
+            // } else {
+                this.mouseMoveHandler(e);
+            // }
         };
 
         this.startBtn.addEventListener('click', () => {
@@ -53,13 +60,21 @@ class MouseGame {
 
     startCountDown(handler) {
         this.countDown = setInterval(() => {
-            if (this.time.textContent === '0') {
-                this.gameContainer.removeEventListener('mousemove', handler);
-                clearInterval(this.countDown);
+            if (this.time.textContent === '0' && this.isGameOver()) {
+                this.endCountDown(handler);
             } else {
-                this.time.textContent = parseInt(this.time.textContent || this.lvl * 10) - 1;
+                this.time.textContent = (parseInt(this.time.textContent) || this.lvl * 10) - 1;
             }
         }, 1000)
+    }
+
+    endCountDown(handler) {
+        this.gameContainer.removeEventListener('mousemove', handler);
+        clearInterval(this.countDown);
+    }
+
+    isGameOver() {
+        return false
     }
 }
 
