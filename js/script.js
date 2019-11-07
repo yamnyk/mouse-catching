@@ -3,17 +3,26 @@ class MouseGame {
         this.gameContainer = document.querySelector(`.${containerClassName}`);
         this.score = 10;
         this.time = 10;
-        this.lvl = 0;
+        this.lvl = 1;
+        this.countDown = null;
         this.redCircle = document.createElement('div');
         this.scoreAndTime = document.createElement('div');
         this.score = document.createElement('span');
         this.time = document.createElement('span');
+        this.startBtn = document.createElement('button');
+        this.startBtn.textContent = 'Start';
     }
 
     start() {
         this.renderGameField();
-        this.gameContainer.addEventListener('mousemove', (e) => {
+
+        const mouseMove = (e) => {
             this.mouseMoveHandler(e);
+        };
+
+        this.startBtn.addEventListener('click', () => {
+            this.startCountDown(mouseMove);
+            this.gameContainer.addEventListener('mousemove', mouseMove);
         });
     }
 
@@ -22,7 +31,9 @@ class MouseGame {
         const cursorY = e.clientY;
         const circleTopCenter = this.redCircle.offsetWidth / 2;
         const circleLeftCenter = this.redCircle.offsetHeight / 2;
-        this.redCircle.style.transform = `translate(${cursorX + circleLeftCenter}px, ${cursorY + circleTopCenter}px)`;
+        setTimeout(() => {
+            this.redCircle.style.transform = `translate(${cursorX - circleLeftCenter}px, ${cursorY - circleTopCenter}px)`;
+        }, 100 / this.lvl);
     }
 
     renderGameField() {
@@ -35,8 +46,20 @@ class MouseGame {
 
         this.gameContainer.append(
             this.redCircle,
-            this.scoreAndTime
+            this.scoreAndTime,
+            this.startBtn
         )
+    }
+
+    startCountDown(handler) {
+        this.countDown = setInterval(() => {
+            if (this.time.textContent === '0') {
+                this.gameContainer.removeEventListener('mousemove', handler);
+                clearInterval(this.countDown);
+            } else {
+                this.time.textContent = parseInt(this.time.textContent || this.lvl * 10) - 1;
+            }
+        }, 1000)
     }
 }
 
