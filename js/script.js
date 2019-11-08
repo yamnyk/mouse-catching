@@ -43,7 +43,7 @@ class MouseGame {
 
         setTimeout(() => {
             this.redCircle.style.transform = `translate(${cursorX - circleLeftCenter}px, ${cursorY - circleTopCenter}px)`;
-        }, 200 / this.lvl);
+        }, 270 - (this.lvl * 20));
     }
 
     renderGameField() {
