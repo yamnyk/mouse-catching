@@ -19,27 +19,31 @@ class MouseGame {
         this.renderGameField();
 
         const mouseMove = (e) => {
-            if (this.isGameOver()) {
+            this.startBtn.innerText = 'Reset';
+            if (this.isGameOver(e)) {
                 this.endCountDown(mouseMove);
+                this.lvl = 1;
             } else {
                 this.mouseMoveHandler(e);
             }
-        };
 
+        };
         this.startBtn.addEventListener('click', () => {
+            this.endCountDown(mouseMove);
             this.startCountDown(mouseMove);
             this.gameContainer.addEventListener('mousemove', mouseMove);
         });
     }
 
     mouseMoveHandler(e) {
-        const cursorX = e.clientX;
-        const cursorY = e.clientY;
-        const circleTopCenter = this.redCircle.offsetWidth / 2;
-        const circleLeftCenter = this.redCircle.offsetHeight / 2;
+        const cursorX = e.clientX,
+            cursorY = e.clientY,
+            circleTopCenter = this.redCircle.offsetWidth / 2,
+            circleLeftCenter = this.redCircle.offsetHeight / 2;
+
         setTimeout(() => {
             this.redCircle.style.transform = `translate(${cursorX - circleLeftCenter}px, ${cursorY - circleTopCenter}px)`;
-        }, 100 / this.lvl);
+        }, 200 / this.lvl);
     }
 
     renderGameField() {
@@ -50,6 +54,10 @@ class MouseGame {
 
         this.scoreAndTime.append(this.score, this.time);
 
+        this.redCircle.style.width = `${this.lvl * 15}px`;
+        this.redCircle.style.height = `${this.lvl * 15}px`;
+        this.redCircle.style.transform = `translate(0px, 0px)`;
+
         this.gameContainer.append(
             this.redCircle,
             this.scoreAndTime,
@@ -58,6 +66,7 @@ class MouseGame {
     }
 
     startCountDown(handler) {
+        this.time.textContent = this.lvl * 10;
         this.countDown = setInterval(() => {
             if (this.time.textContent === '0') {
                 this.endCountDown(handler);
@@ -70,11 +79,35 @@ class MouseGame {
     endCountDown(handler) {
         this.gameContainer.removeEventListener('mousemove', handler);
         this.time.textContent = '';
+        this.startBtn.textContent = 'Start';
         clearInterval(this.countDown);
     }
 
-    isGameOver() {
-        return false
+    isGameOver(e) {
+        const circlePos = parsePosition(this.redCircle.style.transform),
+            cursorPos = {
+            x: e.clientX,
+            y: e.clientY,
+        };
+
+        circlePos.circleWidthEnd = circlePos.x + this.redCircle.offsetWidth;
+        circlePos.circleHeightEnd = circlePos.y + this.redCircle.offsetHeight;
+
+        return (cursorPos.x >= circlePos.x && cursorPos.x <= circlePos.circleWidthEnd)
+            && (cursorPos.y > circlePos.y && cursorPos.y < circlePos.circleHeightEnd);
+
+        function parsePosition(positionString) {
+            const open = positionString.indexOf('(') + 1,
+                close = positionString.indexOf(')'),
+                coma = positionString.indexOf(',') + 1,
+                posX = parseInt(positionString.substring(open, coma)),
+                posY = parseInt(positionString.substring(coma,close));
+
+            return {
+                x: posX,
+                y: posY
+            };
+        }
     }
 }
 
