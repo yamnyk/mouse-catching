@@ -1,17 +1,16 @@
 class MouseGame {
     constructor(containerClassName) {
         this.gameContainer = document.querySelector(`.${containerClassName}`);
-        this.score = 10;
         this.time = 10;
         this.lvl = 1;
         this.countDown = null;
         this.redCircle = document.createElement('div');
         this.scoreAndTime = document.createElement('div');
-        this.score = document.createElement('span');
+        this.showLevel = document.createElement('span');
         this.time = document.createElement('span');
         this.startBtn = document.createElement('button');
 
-        this.score.textContent = 0;
+        this.showLevel.textContent = this.lvl;
         this.startBtn.textContent = 'Start';
     }
 
@@ -49,14 +48,15 @@ class MouseGame {
     renderGameField() {
         this.redCircle.classList.add('red-circle');
         this.scoreAndTime.classList.add('game-table');
-        this.score.classList.add('game-table__score');
+        this.showLevel.classList.add('game-table__level');
         this.time.classList.add('game-table__time');
 
-        this.scoreAndTime.append(this.score, this.time);
+        this.scoreAndTime.append(this.showLevel, this.time);
 
         this.redCircle.style.width = `${this.lvl * 15}px`;
         this.redCircle.style.height = `${this.lvl * 15}px`;
         this.redCircle.style.transform = `translate(0px, 0px)`;
+        this.showLevel.textContent = this.lvl;
 
         this.gameContainer.append(
             this.redCircle,

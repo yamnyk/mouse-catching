@@ -1,29 +1,28 @@
 function randomIntInRange(from, to) {
     return Math.random() * (to - from) + from;
 }
+
 function randomColor() {
-    return '#'+Math.floor(Math.random()*16777215).toString(16)
+    return '#' + Math.floor(Math.random() * 16777215).toString(16) + '88'
 }
 
 function changeBG({timing, draw, duration}) {
 
     let start = performance.now();
+    let evenPoint = duration / 1000;
 
     requestAnimationFrame(function animate(time) {
-        // timeFraction изменяется от 0 до 1
         let timeFraction = (time - start) / duration;
         console.log(timeFraction);
 
-        // if (timeFraction > 1) timeFraction = 1;
         let progress = timing(timeFraction);
-        if(progress >= 1) {
+        if (progress > evenPoint) {
             draw(progress);
             progress = 0;
+            evenPoint += duration / 1000;
         }
 
-        if (timeFraction < 1) {
-            requestAnimationFrame(animate);
-        }
+        requestAnimationFrame(animate);
 
     });
 }
