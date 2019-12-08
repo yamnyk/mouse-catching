@@ -50,17 +50,20 @@ class MouseGame {
         this.scoreAndTime.classList.add('game-table');
         this.showLevel.classList.add('game-table__level');
         this.time.classList.add('game-table__time');
+        this.startBtn.classList.add('start-btn');
 
         this.scoreAndTime.append(this.showLevel, this.time);
 
         this.redCircle.style.width = `${this.lvl * 15}px`;
         this.redCircle.style.height = `${this.lvl * 15}px`;
-        this.redCircle.style.transform = `translate(0px, 0px)`;
+        this.redCircle.style.transform = `translate(50vw, 50vh)`;
         this.showLevel.textContent = this.lvl;
 
+        document.body.oncontextmenu = () => false;
+
         this.gameContainer.append(
-            this.redCircle,
             this.scoreAndTime,
+            this.redCircle,
             this.startBtn
         )
     }
@@ -71,6 +74,7 @@ class MouseGame {
         this.countDown = setInterval(() => {
             if (this.time.textContent === '0') {
                 this.lvl++;
+                this.showLevel.innerText = this.lvl;
                 this.endCountDown(handler);
             } else {
                 this.time.textContent = (parseInt(this.time.textContent) || this.lvl * 10) - 1;
@@ -89,14 +93,21 @@ class MouseGame {
         const circlePos = parsePosition(this.redCircle.style.transform),
             cursorPos = {
                 x: e.clientX,
-                y: e.clientY,
+                y: e.clientY
             };
 
         circlePos.circleWidthEnd = circlePos.x + this.redCircle.offsetWidth;
         circlePos.circleHeightEnd = circlePos.y + this.redCircle.offsetHeight;
 
-        return (cursorPos.x >= circlePos.x && cursorPos.x <= circlePos.circleWidthEnd)
-            && (cursorPos.y > circlePos.y && cursorPos.y < circlePos.circleHeightEnd);
+        const isGameOver = (cursorPos.x >= circlePos.x && cursorPos.x <= circlePos.circleWidthEnd)
+        && (cursorPos.y > circlePos.y && cursorPos.y < circlePos.circleHeightEnd);
+
+        const isOutOfScreen = (cursorPos.x + this.redCircle.clientWidth) >= document.body.offsetWidth
+            || (cursorPos.y + this.redCircle.clientHeight) >= document.body.offsetHeight
+            || cursorPos.x  <= this.redCircle.clientWidth
+            || cursorPos.y <= this.redCircle.clientHeight;
+
+        return isGameOver || isOutOfScreen;
 
         function parsePosition(positionString) {
             const open = positionString.indexOf('(') + 1,

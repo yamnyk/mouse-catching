@@ -13,7 +13,6 @@ function changeBG({timing, draw, duration}) {
 
     requestAnimationFrame(function animate(time) {
         let timeFraction = (time - start) / duration;
-        console.log(timeFraction);
 
         let progress = timing(timeFraction);
         if (progress > evenPoint) {
@@ -32,9 +31,11 @@ changeBG({
         return t;
     },
     draw: function (progress) {
-        document.querySelector('.game-field').style.backgroundColor = randomColor();
+        const r = randomColor();
+        document.querySelector('.game-field').style.backgroundColor = r;
+        document.querySelector('.game-table').style.color = r;
     },
-    duration: 2000
+    duration: 5000
 });
 
 const mouseGame = new MouseGame('game-field');
