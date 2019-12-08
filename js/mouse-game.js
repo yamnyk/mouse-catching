@@ -8,17 +8,14 @@ class MouseGame {
         this.scoreAndTime = document.createElement('div');
         this.showLevel = document.createElement('span');
         this.time = document.createElement('span');
-        this.startBtn = document.createElement('button');
 
         this.showLevel.textContent = this.lvl;
-        this.startBtn.textContent = 'Start';
     }
 
     start() {
         this.renderGameField();
 
         const mouseMove = (e) => {
-            this.startBtn.innerText = 'Reset';
             if (this.isGameOver(e)) {
                 this.endCountDown(mouseMove);
                 this.lvl = 1;
@@ -27,10 +24,17 @@ class MouseGame {
             }
 
         };
-        this.startBtn.addEventListener('click', () => {
-            this.endCountDown(mouseMove);
-            this.startCountDown(mouseMove);
-            this.gameContainer.addEventListener('mousemove', mouseMove);
+        document.addEventListener('keyup', (e) => {
+            console.log(e);
+            if(e.key === ' ') {
+                this.endCountDown(mouseMove);
+                this.startCountDown(mouseMove);
+
+                /*TODO:
+                *  Fix the bug, when start the game circle should start moving immediately*/
+
+                this.gameContainer.addEventListener('mousemove', mouseMove);
+            }
         });
     }
 
@@ -50,7 +54,6 @@ class MouseGame {
         this.scoreAndTime.classList.add('game-table');
         this.showLevel.classList.add('game-table__level');
         this.time.classList.add('game-table__time');
-        this.startBtn.classList.add('start-btn');
 
         this.scoreAndTime.append(this.showLevel, this.time);
 
@@ -63,8 +66,7 @@ class MouseGame {
 
         this.gameContainer.append(
             this.scoreAndTime,
-            this.redCircle,
-            this.startBtn
+            this.redCircle
         )
     }
 
@@ -85,7 +87,6 @@ class MouseGame {
     endCountDown(handler) {
         this.gameContainer.removeEventListener('mousemove', handler);
         this.time.textContent = '';
-        this.startBtn.textContent = 'Start';
         clearInterval(this.countDown);
     }
 
@@ -102,10 +103,12 @@ class MouseGame {
         const isGameOver = (cursorPos.x >= circlePos.x && cursorPos.x <= circlePos.circleWidthEnd)
         && (cursorPos.y > circlePos.y && cursorPos.y < circlePos.circleHeightEnd);
 
-        const isOutOfScreen = (cursorPos.x + this.redCircle.clientWidth) >= document.body.offsetWidth
-            || (cursorPos.y + this.redCircle.clientHeight) >= document.body.offsetHeight
-            || cursorPos.x  <= this.redCircle.clientWidth
-            || cursorPos.y <= this.redCircle.clientHeight;
+        const isOutOfScreen = (cursorPos.x + 5) >= document.body.offsetWidth
+            || (cursorPos.y + 5) >= document.body.offsetHeight
+            || cursorPos.x  <= 5
+            || cursorPos.y <= 5;
+
+        console.log('isOutOfScreen - ', isOutOfScreen, '\n isGameOver', isGameOver);
 
         return isGameOver || isOutOfScreen;
 
