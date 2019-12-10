@@ -1,3 +1,8 @@
+function printNothing() {
+    console.log("thing");
+}
+
+
 function randomIntInRange(from, to) {
     return Math.random() * (to - from) + from;
 }
