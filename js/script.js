@@ -1,7 +1,7 @@
 function printNothing() {
-    console.log('thing');
+    console.log('nothing');
 }
-
+printNothing();
 
 function randomIntInRange(from, to) {
     return Math.random() * (to - from) + from;
