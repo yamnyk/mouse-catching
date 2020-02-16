@@ -25,7 +25,6 @@ class MouseGame {
 
         };
         document.addEventListener('keyup', (e) => {
-            console.log(e);
             if(e.key === ' ') {
                 this.endCountDown(mouseMove);
                 this.startCountDown(mouseMove);
@@ -33,6 +32,7 @@ class MouseGame {
                 /*TODO:
                 *  Fix the bug, when start the game circle should start moving immediately*/
 
+                this.gameContainer.removeEventListener('mousemove', mouseMove);
                 this.gameContainer.addEventListener('mousemove', mouseMove);
             }
         });
@@ -107,9 +107,7 @@ class MouseGame {
             || (cursorPos.y + 5) >= document.body.offsetHeight
             || cursorPos.x  <= 5
             || cursorPos.y <= 5;
-
-        console.log('isOutOfScreen - ', isOutOfScreen, '\n isGameOver', isGameOver);
-
+    
         return isGameOver || isOutOfScreen;
 
         function parsePosition(positionString) {
