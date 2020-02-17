@@ -10,16 +10,20 @@ class MouseCatchingGame {
   };
   controlPanel = Object.freeze({
     wrapper: document.createElement('div'),
-    timeAndScore: document.createElement('span'),
+    time: document.createElement('span'),
     lvl: document.createElement('span'),
     // msg: document.createElement('span'),
   });
   lvl = 1;
-  time = 10;
+  time = this.lvl * 10;
+  countdown = {
+    val: 0,
+    isRunning: false
+  };
   
   
   constructor(containerSelector) {
-    const {controlPanel, lvl, time} = this;
+    const {controlPanel, lvl, time, countdown} = this;
     this.gameContainer = document.querySelector(containerSelector);
     
     const _STATUSES = Object.freeze({
@@ -58,32 +62,57 @@ class MouseCatchingGame {
   
   renderGameField() {
     const {controlPanel, lvl, time, circle, gameContainer} = this;
-  
+    
     controlPanel.lvl.textContent = lvl;
-    controlPanel.timeAndScore.textContent = time;
+    controlPanel.time.textContent = time;
     
     circle.el.classList.add('red-circle');
     controlPanel.wrapper.classList.add('game-table');
-    controlPanel.timeAndScore.classList.add('game-table__time');
+    controlPanel.time.classList.add('game-table__time');
     controlPanel.lvl.classList.add('game-table__level');
     
     controlPanel.wrapper.append(
-      controlPanel.timeAndScore,
+      controlPanel.time,
       controlPanel.lvl
     );
-  
+    
     const circleSize = this.lvl * 15;
     circle.el.style.width = `${circleSize}px`;
     circle.el.style.height = `${circleSize}px`;
     circle.el.style.transform = `translate(${gameContainer.offsetWidth / 2 - circleSize}px, ${gameContainer.offsetHeight / 2 - circleSize}px)`;
-  
+    
     document.body.oncontextmenu = () => false;
-  
+    
     gameContainer.append(
       controlPanel.wrapper,
       circle.el
     )
-    
+  }
+  
+  startCountDown() {
+    const {controlPanel, time, countdown, gameContainer} = this;
+    let {lvl} = this;
+    controlPanel.time.textContent = time;
+  
+    const endCountDown = () => {
+      // gameContainer.removeEventListener('mousemove', )
+      controlPanel.time.textContent = '';
+      clearInterval(countdown.id);
+      countdown.isRunning = false;
+      countdown.id = null;
+    };
+  
+    countdown.id = setInterval(() => {
+      if (countdown.val === 0 && countdown.isRunning) {
+        lvl++;
+        controlPanel.lvl.textContent = lvl;
+        endCountDown();
+      } else {
+        countdown.isRunning ? null : countdown.isRunning = true;
+        countdown.val = parseInt(controlPanel.time.textContent || lvl*10) - 1;
+        controlPanel.time.textContent = countdown.val;
+      }
+    }, 1000)
   }
 }
 

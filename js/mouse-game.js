@@ -1,7 +1,7 @@
 class MouseGame {
   constructor(containerClassName) {
     this.gameContainer = document.querySelector(`.${containerClassName}`);
-    this.time = 10;
+    this.time = this.lvl * 10;
     this.lvl = 1;
     this.countDown = null;
     this.redCircle = document.createElement('div');
