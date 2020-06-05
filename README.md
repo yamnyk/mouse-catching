@@ -6,6 +6,7 @@ There are 10 levels. From 1 up to 10.
 Each level increase the size of the circle, his speed and the time that you need to hold on.
 
 ### Game Process
+To start the game you should press space on your keyboard, othervise the picture will not change.
 You start from the 1-st level. You have 10 seconds to be not cached up by a 15px diameter circle.
 Every time you have failed - game starts from the initial point.
 
