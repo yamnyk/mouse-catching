@@ -1,5 +1,5 @@
 ## Mouse catching game
-It's a simple game, based on the small task - create a red circle and make it follow tрe cursor with some delay.
+It's a simple game, based on the small task - create a red circle and make it follow the cursor with some delay.
 
 ### Levels
 There are 10 levels. From 1 up to 10.
