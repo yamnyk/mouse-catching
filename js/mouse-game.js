@@ -13,11 +13,13 @@ const CONSTANTS = Object.freeze({
 })
 
 export default class MouseGame {
+  status = STATUS.NONE
   selectors = {
     field: '.game-field',
     controls: '.controls',
     userName: '.controls-username',
     controlsInfo: '.controls-info',
+    controlsTiming: '.controls-timing',
     controlsInfoTitle: '.controls-info-title',
     controlsInfoList: '.controls-info-list',
     controlsInfoItem: '.controls-info-item',
@@ -26,6 +28,7 @@ export default class MouseGame {
     field: null,
     controls: null,
     controlsInfo: null,
+    controlsTiming: null,
     controlsInfoTitle: null,
     controlsInfoList: null,
     controlsInfoItem: null,
@@ -44,6 +47,7 @@ export default class MouseGame {
   }
   time = null
   didFirstMove = false
+  userName = null
 
 
   constructor({selectors, elements, classes}) {
@@ -73,7 +77,8 @@ export default class MouseGame {
       if (
         this.status === STATUS.NONE &&
         e.code.toLowerCase() === CONSTANTS.SPACE &&
-        this.isCursorInFrame
+        this.isCursorInFrame &&
+          this.user
       ) {
         this.start()
       }
@@ -84,7 +89,7 @@ export default class MouseGame {
         .collection('users')
         .where('name', '==', target.value)
         .get()
-      let usr = null
+      let usr
 
       if (!snSht.empty) {
         const usrRes = snSht.docs[0]
@@ -102,6 +107,7 @@ export default class MouseGame {
       }
 
       this.user = usr
+      await this.getAllHistory()
     })
 
     await this.getAllHistory()
@@ -148,7 +154,7 @@ export default class MouseGame {
     }
 
     this.time = null
-    this.elements.timing.textContent = `Your time:`
+    this.elements.controlsTiming.textContent = `Your time:`
     this.didFirstMove = false
 
     if (this.status === STATUS.LOSE) {
@@ -203,7 +209,7 @@ export default class MouseGame {
     if (this.didFirstMove) {
       this.time += CONSTANTS.INTERVAL
 
-      this.elements.timing.textContent = `Your time: ${this.getTime()}`
+      this.elements.controlsTiming.textContent = `Your time: ${this.getTime()}`
     }
   }
 
@@ -247,48 +253,30 @@ export default class MouseGame {
   }
 
   async getAllHistory() {
-    const dataSnapshot = await db.collection('history').get()
-    this.elements.controlsInfoList.innerHTML = ''
+    if(!this.user) return null
 
-    this.history = await Promise.all(
-      dataSnapshot.docs.map(async doc => {
-        const data = doc.data()
-        const owner = await db.collection('users').doc(data.owner.id).get()
+    const dataSnapshot = await db.collection('history').doc(this.user.id).get()
+    const data = dataSnapshot.data()
 
-        return {
-          id: doc.id,
-          ...data,
-          owner: {
-            id: data.owner.id,
-            ...owner.data()
-          }
-        }
-      })
-    )
+    this.history = data.list
+
     this.renderHistory()
   }
 
   async handleSaveHistory(payload) {
-    await db.collection('history').add(payload)
+    if(!this.user) return null
+    this.history = [...this.history, payload]
 
-    const dataSnapshot = await db.collection('history').get()
-    this.elements.controlsInfoList.innerHTML = ''
+    await db.collection('history').doc(this.user.id).set({
+      list: this.history
+    })
 
-    this.history = await Promise.all(
-      dataSnapshot.docs.map(async doc => {
-        const data = doc.data()
-
-        return {
-          id: doc.id,
-          ...data,
-          owner: await db.collection('users').doc(this.user.id).get()
-        }
-      })
-    )
     this.renderHistory()
   }
 
   renderHistory() {
+    this.elements.controlsInfoList.innerHTML = ''
+
     this.elements.controlsInfoList.insertAdjacentHTML(
       'afterbegin',
       this.history.map(h => `<li class="${this.selectors.controlsInfoItem.slice(1)}">${h.time}</li>`).join('\n')
