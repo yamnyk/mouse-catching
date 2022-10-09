@@ -78,7 +78,7 @@ export default class MouseGame {
         this.status === STATUS.NONE &&
         e.code.toLowerCase() === CONSTANTS.SPACE &&
         this.isCursorInFrame &&
-          this.user
+        this.user
       ) {
         this.start()
       }
@@ -253,7 +253,7 @@ export default class MouseGame {
   }
 
   async getAllHistory() {
-    if(!this.user) return null
+    if (!this.user) return null
 
     const dataSnapshot = await db.collection('history').doc(this.user.id).get()
     const data = dataSnapshot.data()
@@ -264,7 +264,7 @@ export default class MouseGame {
   }
 
   async handleSaveHistory(payload) {
-    if(!this.user) return null
+    if (!this.user) return null
     this.history = [...this.history, payload]
 
     await db.collection('history').doc(this.user.id).set({
