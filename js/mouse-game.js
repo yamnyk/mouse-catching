@@ -1,53 +1,20 @@
-import db from './firebase.js'
-
-const STATUS = Object.freeze({
-  NONE: null,
-  STARTED: 'started',
-  WIN: 'win',
-  LOSE: 'lose'
-})
-const CONSTANTS = Object.freeze({
-  SPACE: 'space',
-  INTERVAL: 100,
-  ENEMY_DELAY: 270
-})
+import db from './api/firebase.js'
+import {STATUS, CONSTANTS} from "./helpers/enums";
+import {initialSelectors, initialElements, initialCursor} from "./helpers/initialValues";
 
 export default class MouseGame {
   status = STATUS.NONE
-  selectors = {
-    field: '.game-field',
-    controls: '.controls',
-    userName: '.controls-username',
-    controlsInfo: '.controls-info',
-    controlsTiming: '.controls-timing',
-    controlsInfoTitle: '.controls-info-title',
-    controlsInfoList: '.controls-info-list',
-    controlsInfoItem: '.controls-info-item',
-  }
-  elements = {
-    field: null,
-    controls: null,
-    controlsInfo: null,
-    controlsTiming: null,
-    controlsInfoTitle: null,
-    controlsInfoList: null,
-    controlsInfoItem: null,
-  }
-  cursor = {
-    x: null,
-    y: null
-  }
+  selectors = initialSelectors
+  elements = initialElements
+  cursor = initialCursor
   enemy = {
     self: document.createElement('div'),
     rendered: false,
-    position: {
-      x: null,
-      y: null
-    }
+    position: initialCursor
   }
   time = null
   didFirstMove = false
-  userName = null
+  user = null
 
 
   constructor({selectors, elements, classes}) {
