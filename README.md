@@ -1,18 +1,13 @@
 ## Mouse catching game
 It's a simple game, based on the small task - create a red circle and make it follow the cursor with some delay.
 
-### Levels
-There are 10 levels. From 1 up to 10.
-Each level increase the size of the circle, his speed and the time that you need to hold on.
-
 ### Game Process
-To start the game you should press space on your keyboard, othervise the picture will not change.
+In order to start the game - enter your username into the input at the left side panel.
 
-You start from the 1-st level. You have 10 seconds to be not cached up by a 15px diameter circle.
-Every time you have failed - game starts from the initial point.
+After that ust move the cursor to the right area and click on it. Now the game is ready to be started,
+so all you need is to press space and move the cursor to trigger the circle to follow your movements.
 
 ##### Updates notes
-* Start screen
-* Add history of results
-* Create NodeJS backend for keeping and loading history
-* Add authorisation 
+* Highlight previous result in history
+* Add 10 levels. Each level increases the speed and the size of the red circle.
+* Add google authentification

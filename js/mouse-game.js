@@ -258,14 +258,14 @@ export default class MouseGame {
     const dataSnapshot = await db.collection('history').doc(this.user.id).get()
     const data = dataSnapshot.data()
 
-    this.history = data.list
+    this.history = data.list.sort(({time: timeA}, {time: timeB}) => timeB - timeA)
 
     this.renderHistory()
   }
 
   async handleSaveHistory(payload) {
     if (!this.user) return null
-    this.history = [...this.history, payload]
+    this.history = [...this.history, payload].sort(({time: timeA}, {time: timeB}) => timeB - timeA)
 
     await db.collection('history').doc(this.user.id).set({
       list: this.history
@@ -279,7 +279,7 @@ export default class MouseGame {
 
     this.elements.controlsInfoList.insertAdjacentHTML(
       'afterbegin',
-      this.history.map(h => `<li class="${this.selectors.controlsInfoItem.slice(1)}">${h.time}</li>`).join('\n')
+      this.history.slice(0, 9).map(h => `<li class="${this.selectors.controlsInfoItem.slice(1)}">${h.time}</li>`).join('\n')
     )
   }
 }
