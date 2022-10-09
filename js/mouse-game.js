@@ -1,126 +1,285 @@
-class MouseGame {
-    constructor(containerClassName) {
-        this.gameContainer = document.querySelector(`.${containerClassName}`);
-        this.time = 10;
-        this.lvl = 1;
-        this.countDown = null;
-        this.redCircle = document.createElement('div');
-        this.scoreAndTime = document.createElement('div');
-        this.showLevel = document.createElement('span');
-        this.time = document.createElement('span');
+import db from './firebase.js'
 
-        this.showLevel.textContent = this.lvl;
+const STATUS = Object.freeze({
+  NONE: null,
+  STARTED: 'started',
+  WIN: 'win',
+  LOSE: 'lose'
+})
+const CONSTANTS = Object.freeze({
+  SPACE: 'space',
+  INTERVAL: 100,
+  ENEMY_DELAY: 270
+})
+
+export default class MouseGame {
+  status = STATUS.NONE
+  selectors = {
+    field: '.game-field',
+    controls: '.controls',
+    userName: '.controls-username',
+    controlsInfo: '.controls-info',
+    controlsTiming: '.controls-timing',
+    controlsInfoTitle: '.controls-info-title',
+    controlsInfoList: '.controls-info-list',
+    controlsInfoItem: '.controls-info-item',
+  }
+  elements = {
+    field: null,
+    controls: null,
+    controlsInfo: null,
+    controlsTiming: null,
+    controlsInfoTitle: null,
+    controlsInfoList: null,
+    controlsInfoItem: null,
+  }
+  cursor = {
+    x: null,
+    y: null
+  }
+  enemy = {
+    self: document.createElement('div'),
+    rendered: false,
+    position: {
+      x: null,
+      y: null
+    }
+  }
+  time = null
+  didFirstMove = false
+  userName = null
+
+
+  constructor({selectors, elements, classes}) {
+    this.selectors = {...this.selectors, ...selectors};
+
+    if (!elements) {
+      Object.entries(this.selectors).forEach(([key, selector]) => {
+        this.elements[key] = document.querySelector(selector);
+      })
+    } else {
+      this.elements = {...this.elements, ...elements};
     }
 
-    start() {
-        this.renderGameField();
+    this.classes = {...this.classes, ...classes};
 
-        const mouseMove = (e) => {
-            if (this.isGameOver(e)) {
-                this.endCountDown(mouseMove);
-                this.lvl = 1;
-            } else {
-                this.mouseMoveHandler(e);
-            }
-
-        };
-        document.addEventListener('keyup', (e) => {
-            if(e.key === ' ') {
-                this.endCountDown(mouseMove);
-                this.startCountDown(mouseMove);
-
-                /*TODO:
-                *  Fix the bug, when start the game circle should start moving immediately*/
-
-                this.gameContainer.removeEventListener('mousemove', mouseMove);
-                this.gameContainer.addEventListener('mousemove', mouseMove);
-            }
-        });
+    document.oncontextmenu = e => {
+      e.preventDefault()
+      return null
     }
+  }
 
-    mouseMoveHandler(e) {
-        const cursorX = e.clientX,
-            cursorY = e.clientY,
-            circleTopCenter = this.redCircle.offsetWidth / 2,
-            circleLeftCenter = this.redCircle.offsetHeight / 2;
 
-        setTimeout(() => {
-            this.redCircle.style.transform = `translate(${cursorX - circleLeftCenter}px, ${cursorY - circleTopCenter}px)`;
-        }, 270 - (this.lvl * 20));
-    }
+  async render() {
+    document.addEventListener('mousemove', e => this.handleMouseMove(e))
 
-    renderGameField() {
-        this.redCircle.classList.add('red-circle');
-        this.scoreAndTime.classList.add('game-table');
-        this.showLevel.classList.add('game-table__level');
-        this.time.classList.add('game-table__time');
+    document.addEventListener('keyup', e => {
+      if (
+        this.status === STATUS.NONE &&
+        e.code.toLowerCase() === CONSTANTS.SPACE &&
+        this.isCursorInFrame &&
+        this.user
+      ) {
+        this.start()
+      }
+    })
 
-        this.scoreAndTime.append(this.showLevel, this.time);
+    this.elements.userName.addEventListener('blur', async ({target}) => {
+      const snSht = await db
+        .collection('users')
+        .where('name', '==', target.value)
+        .get()
+      let usr
 
-        this.redCircle.style.width = `${this.lvl * 15}px`;
-        this.redCircle.style.height = `${this.lvl * 15}px`;
-        this.redCircle.style.transform = `translate(50vw, 50vh)`;
-        this.showLevel.textContent = this.lvl;
-
-        document.body.oncontextmenu = () => false;
-
-        this.gameContainer.append(
-            this.scoreAndTime,
-            this.redCircle
-        )
-    }
-
-    startCountDown(handler) {
-        this.time.textContent = this.lvl * 10;
-        this.renderGameField();
-        this.countDown = setInterval(() => {
-            if (this.time.textContent === '0') {
-                this.lvl++;
-                this.showLevel.innerText = this.lvl;
-                this.endCountDown(handler);
-            } else {
-                this.time.textContent = (parseInt(this.time.textContent) || this.lvl * 10) - 1;
-            }
-        }, 1000)
-    }
-
-    endCountDown(handler) {
-        this.gameContainer.removeEventListener('mousemove', handler);
-        this.time.textContent = '';
-        clearInterval(this.countDown);
-    }
-
-    isGameOver(e) {
-        const circlePos = parsePosition(this.redCircle.style.transform),
-            cursorPos = {
-                x: e.clientX,
-                y: e.clientY
-            };
-
-        circlePos.circleWidthEnd = circlePos.x + this.redCircle.offsetWidth;
-        circlePos.circleHeightEnd = circlePos.y + this.redCircle.offsetHeight;
-
-        const isGameOver = (cursorPos.x >= circlePos.x && cursorPos.x <= circlePos.circleWidthEnd)
-        && (cursorPos.y > circlePos.y && cursorPos.y < circlePos.circleHeightEnd);
-
-        const isOutOfScreen = (cursorPos.x + 5) >= document.body.offsetWidth
-            || (cursorPos.y + 5) >= document.body.offsetHeight
-            || cursorPos.x  <= 5
-            || cursorPos.y <= 5;
-    
-        return isGameOver || isOutOfScreen;
-
-        function parsePosition(positionString) {
-            const open = positionString.indexOf('(') + 1,
-                close = positionString.indexOf(')'),
-                coma = positionString.indexOf(',') + 1,
-                posX = parseInt(positionString.substring(open, coma)),
-                posY = parseInt(positionString.substring(coma,close));
-
-            return {
-                x: posX,
-                y: posY
-            };
+      if (!snSht.empty) {
+        const usrRes = snSht.docs[0]
+        usr = {
+          id: usrRes.id,
+          ...usrRes.data()
         }
+      } else {
+        const saved = await db.collection('users').add({name: target.value})
+        const usrFromDb = await db.collection('users').doc(saved.id).get()
+        usr = {
+          id: saved.id,
+          ...usrFromDb.data()
+        }
+      }
+
+      this.user = usr
+      await this.getAllHistory()
+    })
+
+    await this.getAllHistory()
+  }
+
+  start() {
+    this.status = STATUS.STARTED
+
+    this.elements.field.style.overflow = 'hidden'
+    this.elements.field.classList.remove(this.classes.gameOverLose)
+    this.elements.field.classList.remove(this.classes.gameOverWin)
+
+    if (!this.enemy.rendered) {
+      this.makeEnemy()
     }
+
+    const intervalID = setInterval(() => {
+      if (
+        this.status === STATUS.STARTED &&
+        (!this.isCursorInFrame || this.isEnemyOnCursor())
+      ) {
+        this.status = STATUS.LOSE
+      }
+
+      if (this.isGameOver()) {
+        this.endGame(intervalID)
+        this.status = STATUS.NONE
+      } else {
+        this.handleInterval()
+      }
+    }, CONSTANTS.INTERVAL)
+  }
+
+  async endGame(intervalID) {
+    clearInterval(intervalID)
+    this.enemy.self.remove()
+    this.enemy.rendered = false
+
+    if (this.time !== null) {
+      await this.handleSaveHistory({
+        time: this.time,
+        date: Date.now()
+      })
+    }
+
+    this.time = null
+    this.elements.controlsTiming.textContent = `Your time:`
+    this.didFirstMove = false
+
+    if (this.status === STATUS.LOSE) {
+      this.elements.field.classList.add(this.classes.gameOverLose)
+    } else if (this.status === STATUS.WIN) {
+      this.elements.field.classList.add(this.classes.gameOverWin)
+    }
+  }
+
+  isGameOver() {
+    return this.status === STATUS.LOSE || this.status === STATUS.WIN
+  }
+
+  handleMouseMove(e) {
+    if (
+      this.status === STATUS.STARTED &&
+      !this.didFirstMove &&
+      this.time === null
+    ) {
+      this.didFirstMove = true
+    }
+    this.cursor.x = e.clientX
+    this.cursor.y = e.clientY
+
+    this.isCursorInFrame =
+      this.cursor.x >= this.elements.field.offsetLeft &&
+      this.cursor.x <=
+      this.elements.field.offsetLeft + this.elements.field.clientWidth &&
+      this.cursor.y >= this.elements.field.offsetTop &&
+      this.cursor.y <=
+      this.elements.field.offsetTop + this.elements.field.clientHeight
+
+    const handleChange = (cursorX, cursorY) => {
+      this.enemy.position.x = cursorX - this.enemy.self.clientWidth / 2
+      this.enemy.position.y = cursorY - this.enemy.self.clientHeight / 2
+
+      this.enemy.self.style.left = `${this.enemy.position.x}px`
+      this.enemy.self.style.top = `${this.enemy.position.y}px`
+    }
+
+    setTimeout(
+      handleChange,
+      CONSTANTS.ENEMY_DELAY,
+      this.cursor.x,
+      this.cursor.y,
+      this.elements.field.offsetLeft,
+      this.elements.field.offsetTop
+    )
+  }
+
+  handleInterval() {
+    if (this.didFirstMove) {
+      this.time += CONSTANTS.INTERVAL
+
+      this.elements.controlsTiming.textContent = `Your time: ${this.getTime()}`
+    }
+  }
+
+  makeEnemy() {
+    const {self: enemy, position} = this.enemy
+    const {field} = this.elements
+
+    position.x = '50%'
+    position.y = '50%'
+
+    field.style.transformOrigin = 'center'
+
+    enemy.style.position = 'fixed'
+    enemy.style.left = position.x
+    enemy.style.top = position.y
+
+    enemy.classList.add('enemy')
+
+    field.append(enemy)
+    enemy.rendered = true
+  }
+
+  getTime() {
+    return `${Math.round(this.time / 1000)}.${
+      Math.round(this.time % 1000) / CONSTANTS.INTERVAL
+    }`
+  }
+
+  isEnemyOnCursor() {
+    const {x: cursorX, y: cursorY} = this.cursor
+    const {x: enemyX, y: enemyY} = this.enemy.position
+    const {offsetWidth: enemyWidth, offsetHeight: enemyHeight} =
+      this.enemy.self
+
+    return (
+      cursorX >= enemyX &&
+      cursorX <= enemyX + enemyWidth &&
+      cursorY > enemyY &&
+      cursorY < enemyY + enemyHeight
+    )
+  }
+
+  async getAllHistory() {
+    if (!this.user) return null
+
+    const dataSnapshot = await db.collection('history').doc(this.user.id).get()
+    const data = dataSnapshot.data()
+
+    this.history = data.list
+
+    this.renderHistory()
+  }
+
+  async handleSaveHistory(payload) {
+    if (!this.user) return null
+    this.history = [...this.history, payload]
+
+    await db.collection('history').doc(this.user.id).set({
+      list: this.history
+    })
+
+    this.renderHistory()
+  }
+
+  renderHistory() {
+    this.elements.controlsInfoList.innerHTML = ''
+
+    this.elements.controlsInfoList.insertAdjacentHTML(
+      'afterbegin',
+      this.history.map(h => `<li class="${this.selectors.controlsInfoItem.slice(1)}">${h.time}</li>`).join('\n')
+    )
+  }
 }
